@@ -9,10 +9,15 @@ var util = require('util')
 
 db.connect(process.env.MONGO_DB_URI || 'mongodb://localhost/mongoose-materialized')
 
-describe('Matarialized test', function() {
+describe('Materialized test', function() {
 
   // schema
-    var treeSchema = new Schema({ name: 'string', count: 'number' })
+    var treeSchema = new Schema({
+      name: 'string',
+      count: 'number',
+      treeRef: { type: ObjectId, ref: 'tree' },
+    });
+
     treeSchema.plugin(materialized)
     var TreeModel = db.model('tree', treeSchema, 'tree')
 
@@ -259,6 +264,42 @@ describe('Matarialized test', function() {
               assert.strictEqual(keysList[0], data.catA3._id.toString());
               assert.strictEqual(keysList[1], data.catA2._id.toString());
               assert.strictEqual(keysList[2], data.catA1._id.toString());
+              done()
+            })
+        })
+      });
+    });
+
+    it('should get array tree, populate fields', function (done) {
+      var data = {};
+      async.waterfall([
+        function(cb) {
+          TreeModel.create({ name: 'Ax' }, function(err, catA) {
+            data.catA = catA;
+            cb(err, catA);
+          });
+        },
+        function(catA, cb) {
+          TreeModel.create({ parentId: catA._id, name: 'Ax1', treeRef: catA._id }, function(err, catA1) {
+            data.catA1 = catA1;
+            cb(err, catA1);
+          });
+        },
+        function(catA1, cb) {
+          TreeModel.create({ parentId: catA1._id, name: 'Ax2', treeRef: data.catA._id }, function(err, catA2) {
+            data.catA2 = catA2;
+            cb(err, catA2);
+          });
+        },
+      ], function (err, results) {
+          TreeModel.findOne({ _id: data.catA._id }, function(err, root) {
+            assert.strictEqual(err, null);
+            root.getArrayTree({ populate: [{ path: 'treeRef', select: '_id name' }] }, function (err, tree) {
+              assert.strictEqual(tree[0].name, 'Ax');
+              assert.strictEqual(tree[0].children[0].treeRef.name, 'Ax');
+              assert.strictEqual(tree[0].children[0].treeRef.path, undefined);
+              assert.strictEqual(tree[0].children[0].children[0].treeRef.name, 'Ax');
+              assert.strictEqual(tree[0].children[0].children[0].treeRef.path, undefined);
               done()
             })
         })
@@ -621,7 +662,7 @@ describe('Matarialized test', function() {
     })
 
     it('should drop database', function(done){
-      db.connection.db.command({
+      db.connection.db.executeDbCommand({
         dropDatabase: 1
       }, function(err, result) {
         assert.strictEqual(err, null)
@@ -968,7 +1009,7 @@ describe('Alternative tests', function() {
     })
 
     it('should drop database', function(done){
-      db.connection.db.command({
+      db.connection.db.executeDbCommand({
         dropDatabase: 1
       }, function(err, result) {
         assert.strictEqual(err, null)
