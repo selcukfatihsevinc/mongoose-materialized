@@ -122,7 +122,7 @@ describe('Materialized test', () => {
       });
     });
 
-    it('should insert element for non existsing parent', (done) => {
+    it('should insert element for non existing parent', (done) => {
       const instance = new TreeModel({
         name: 'child element without parent',
         count: 6,
@@ -160,7 +160,6 @@ describe('Materialized test', () => {
       TreeModel.findOne({ parentId: null }).exec(async (err, rdoc) => {
         assert.equal(err, null);
         const docs = await rdoc.getDescendants();
-
         assert.strictEqual(docs.length, 4);
         assert.strictEqual(docs[0].parentId.toString(), rdoc._id.toString());
         done();
@@ -171,7 +170,6 @@ describe('Materialized test', () => {
       TreeModel.findOne({ parentId: null }).exec(async (err, rdoc) => {
         assert.equal(err, null);
         const docs = await rdoc.getDescendants({ limit: 2, skip: 1 });
-
         assert.strictEqual(docs.length, 2);
         assert.strictEqual(docs[0].parentId.toString(), rdoc._id.toString());
         done();
@@ -549,6 +547,7 @@ describe('Materialized test', () => {
     });
     simple1Schema.plugin(materialized);
     const Simple1 = db.model('simple1', simple1Schema, 'simple');
+
     it('should building hierarchic and check tree', (done) => {
       Simple1.Building(() => {
         Simple1.findOne({ parentId: null }).exec((err, root) => {
@@ -573,6 +572,7 @@ describe('Materialized test', () => {
     const catSchema = new Schema({
       name: 'string',
     });
+
     catSchema.plugin(materialized);
     const Cat = db.model('cat2', catSchema, 'cat2');
 
@@ -583,7 +583,7 @@ describe('Materialized test', () => {
 
     // ---------------------------------------------------------
 
-    it('sholud build simple category schema', (done) => {
+    it('should build simple category schema', (done) => {
       const food = new Cat({ name: 'Foods' });
       food.save(async (err, food) => {
         assert.strictEqual(err, null);
@@ -604,7 +604,7 @@ describe('Materialized test', () => {
       });
     });
 
-    it('sholud remove item parent', (done) => {
+    it('should remove item parent', (done) => {
       Cat.findById(vegaId, (err, vega) => {
         Object.assign(vega, { parentId: null });
         vega.save((err, vega) => {
@@ -622,7 +622,7 @@ describe('Materialized test', () => {
       });
     });
 
-    it('sholud move root item to sub element', (done) => {
+    it('should move root item to sub element', (done) => {
       Cat.findById(vegaId, (err, vega) => {
         Object.assign(vega, { parentId: foodId });
         vega.save((err, vega) => {
@@ -821,7 +821,7 @@ describe('Materialized test', () => {
   });
 
   describe('#clean', () => {
-    it('sholud remove #1 item', (done) => {
+    it('should remove #1 item', (done) => {
       TreeModel.findById(lvl1Id, async (err, doc) => {
         assert.equal(err, null);
         await TreeModel.Remove({ _id: lvl1Id });
@@ -875,6 +875,7 @@ describe('Alternative tests', () => {
         name: '#1, parent: #0, lvl: 1',
         parentId: RootId,
       });
+
       instance.save((err, doc) => {
         assert.strictEqual(err, null);
         assert.strictEqual(doc.id, 2);
@@ -892,6 +893,7 @@ describe('Alternative tests', () => {
         name: '#2, parent: #0, lvl: 1',
         parentId: RootId,
       });
+
       instance.save((err, doc) => {
         assert.strictEqual(err, null);
         assert.strictEqual(doc.id, 3);
@@ -909,6 +911,7 @@ describe('Alternative tests', () => {
         name: '#3, parent: #1, lvl: 2',
         parentId: lvl1Id,
       });
+
       instance.save((err, doc) => {
         assert.strictEqual(err, null);
         assert.strictEqual(doc.id, 4);
@@ -925,6 +928,7 @@ describe('Alternative tests', () => {
         name: '#4, parent: #1, lvl: 2',
         parentId: lvl1Id,
       });
+
       instance.save((err, doc) => {
         assert.strictEqual(err, null);
         assert.strictEqual(doc.id, 5);
@@ -936,12 +940,13 @@ describe('Alternative tests', () => {
       });
     });
 
-    it('sholud insert element for non exsitsing parent', (done) => {
+    it('should insert element for non existing parent', (done) => {
       const instance = new NovaModel({
         id: 6,
         name: 'child element without parent',
         parentId: db.Types.ObjectId(),
       });
+
       instance.save((err, doc) => {
         assert.notEqual(err, null);
         done();
@@ -973,7 +978,6 @@ describe('Alternative tests', () => {
       NovaModel.findOne({ parentId: null }).exec(async (err, rdoc) => {
         assert.equal(err, null);
         const docs = await rdoc.getDescendants();
-
         assert.strictEqual(err, null);
         assert.strictEqual(docs.length, 4);
         assert.strictEqual(docs[0].parentId.toString(), rdoc.id.toString());
@@ -985,7 +989,6 @@ describe('Alternative tests', () => {
       NovaModel.findOne({ parentId: null }).exec(async (err, rdoc) => {
         assert.equal(err, null);
         const docs = await rdoc.getDescendants({ limit: 2, skip: 1 });
-
         assert.strictEqual(err, null);
         assert.strictEqual(docs.length, 2);
         assert.strictEqual(docs[0].parentId.toString(), rdoc.id.toString());
@@ -997,7 +1000,6 @@ describe('Alternative tests', () => {
       NovaModel.findOne({ parentId: null }).exec(async (err, rdoc) => {
         assert.equal(err, null);
         const docs = await rdoc.getChildren();
-
         assert.strictEqual(docs.length, 4);
         assert.strictEqual(docs[0].parentId.toString(), rdoc.id.toString());
         done();
@@ -1008,7 +1010,6 @@ describe('Alternative tests', () => {
       NovaModel.findOne({ id: lvl1Id }).exec(async (err, rdoc) => {
         assert.equal(err, null);
         const docs = await rdoc.getDescendants();
-
         assert.strictEqual(err, null);
         assert.strictEqual(docs.length, 2);
         assert.strictEqual(docs[0].parentId.toString(), rdoc.id.toString());
@@ -1186,7 +1187,7 @@ describe('Alternative tests', () => {
   });
 
   describe('#clean', () => {
-    it('sholud remove #1 item', (done) => {
+    it('should remove #1 item', (done) => {
       NovaModel.findOne({ id: lvl1Id }, async (err, doc) => {
         assert.equal(err, null);
 
